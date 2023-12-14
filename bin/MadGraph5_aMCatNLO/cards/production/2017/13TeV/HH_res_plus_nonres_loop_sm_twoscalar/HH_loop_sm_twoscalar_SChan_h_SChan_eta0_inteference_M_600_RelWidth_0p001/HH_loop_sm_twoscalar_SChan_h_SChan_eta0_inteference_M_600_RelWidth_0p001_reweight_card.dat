@@ -1,5 +1,19 @@
-change rwgt_dir ./rwgt
+\change rwgt_dir ./rwgt
 
+
+change process p p > h h [QCD] / t iota0 LAM111^2==1 LAM112^2==1
+launch --rwgt_name=no_t_loop 
+
+change rwgt_dir ./rwgt_2
+
+
+change process p p > h h [QCD] / b iota0 LAM111^2==1 LAM112^2==1
+launch --rwgt_name=no_b_loop 
+
+change rwgt_dir ./rwgt_3
+
+
+change process p p > h h [QCD] / iota0 LAM111^2==1 LAM112^2==1
 launch --rwgt_name=RelWidth_0p001
   set decay 99925 0.6
 
@@ -50,4 +64,16 @@ launch --rwgt_name=RelWidth_0p15
 
 launch --rwgt_name=RelWidth_0p16
   set decay 99925 96
+
+launch --rwgt_name=RelWidth_0p17
+  set decay 99925 102
+
+launch --rwgt_name=RelWidth_0p18
+  set decay 99925 108
+
+launch --rwgt_name=RelWidth_0p19
+  set decay 99925 114
+
+launch --rwgt_name=RelWidth_0p2
+  set decay 99925 120
 

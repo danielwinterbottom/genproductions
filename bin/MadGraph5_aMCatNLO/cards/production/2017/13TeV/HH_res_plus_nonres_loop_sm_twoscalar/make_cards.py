@@ -27,10 +27,24 @@ def WriteCustomizeCard(out_name, out_str):
     with open(out_name+'_customizecards.dat', "w") as customizecard_file:
         customizecard_file.write(out_str)
 
-def WriteReweightCard(out_name, mass, widths=[0.001,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16]):
-    reweight_out_string='\
-change rwgt_dir ./rwgt\n\
-\n'
+def WriteReweightCard(out_name, extra, mass, widths=[0.001,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.20]):
+    reweight_out_string='\change rwgt_dir ./rwgt\n\n'
+
+    wt_string = '\nchange process p p > h h [QCD]' + (' %s' % extra if extra else '')
+    if '/' in wt_string: wt_string = wt_string.replace('/','/ t') 
+    else: wt_string += ' / t'
+    wt_string += '\nlaunch --rwgt_name=no_t_loop \n'
+    reweight_out_string += wt_string
+    reweight_out_string += '\nchange rwgt_dir ./rwgt_2\n\n'
+    wt_string = '\nchange process p p > h h [QCD]' + (' %s' % extra if extra else '')
+    if '/' in wt_string: wt_string = wt_string.replace('/','/ b')
+    else: wt_string += ' / b'
+    wt_string += '\nlaunch --rwgt_name=no_b_loop \n'
+    reweight_out_string += wt_string
+    
+    reweight_out_string+='\nchange rwgt_dir ./rwgt_3\n\n'
+
+    reweight_out_string += '\nchange process p p > h h [QCD]' + (' %s\n' % extra if extra else '\n')
 
     width_dep_string = '\
 launch --rwgt_name=$postfix\n\
@@ -40,6 +54,7 @@ launch --rwgt_name=$postfix\n\
     for w in widths:
         postfix = ('RelWidth_%g' % (w)).replace('.','p')
         reweight_out_string += width_dep_string.replace('$W', '%g' % (float(mass)*w)).replace('$postfix', postfix)
+
 
     with open(out_name+'_reweight_card.dat', "w") as reweightcard_file:
         reweightcard_file.write(reweight_out_string)
@@ -103,5 +118,5 @@ for m in masses:
             WriteExtraModelsCard(card_name)
             WriteRunCard(card_name)
             WriteCustomizeCard(card_name, res_customizecards_out)
-            WriteReweightCard(card_name, m)
+            WriteReweightCard(card_name, extra, m)
 
