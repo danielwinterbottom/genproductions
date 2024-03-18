@@ -18,7 +18,8 @@ def WriteRunCard(out_name):
 
 def WriteProcCard(out_name, extra=''):
     proccard_out = 'import model loop_sm_twoscalar\n'
-    proccard_out += 'generate p p > h h [QCD]' + (' %s\n' % extra if extra else '\n') 
+    if 'SChan_eta0_UnDecayed' in out_name: proccard_out += 'generate p p > eta0 [QCD]' + (' %s\n' % extra if extra else '\n') 
+    else: proccard_out += 'generate p p > h h [QCD]' + (' %s\n' % extra if extra else '\n') 
     proccard_out += 'output %s -nojpeg' % out_name.split('/')[0]
     with open(out_name+'_proc_card.dat', "w") as proccard_file:
         proccard_file.write(proccard_out)
@@ -27,24 +28,10 @@ def WriteCustomizeCard(out_name, out_str):
     with open(out_name+'_customizecards.dat', "w") as customizecard_file:
         customizecard_file.write(out_str)
 
-def WriteReweightCard(out_name, extra, mass, widths=[0.001,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.20]):
-    reweight_out_string='\change rwgt_dir ./rwgt\n\n'
-
-    wt_string = '\nchange process p p > h h [QCD]' + (' %s' % extra if extra else '')
-    if '/' in wt_string: wt_string = wt_string.replace('/','/ t') 
-    else: wt_string += ' / t'
-    wt_string += '\nlaunch --rwgt_name=no_t_loop \n'
-    reweight_out_string += wt_string
-    reweight_out_string += '\nchange rwgt_dir ./rwgt_2\n\n'
-    wt_string = '\nchange process p p > h h [QCD]' + (' %s' % extra if extra else '')
-    if '/' in wt_string: wt_string = wt_string.replace('/','/ b')
-    else: wt_string += ' / b'
-    wt_string += '\nlaunch --rwgt_name=no_b_loop \n'
-    reweight_out_string += wt_string
-    
-    reweight_out_string+='\nchange rwgt_dir ./rwgt_3\n\n'
-
-    reweight_out_string += '\nchange process p p > h h [QCD]' + (' %s\n' % extra if extra else '\n')
+def WriteReweightCard(out_name, mass, widths=[0.001,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16]):
+    reweight_out_string='\
+change rwgt_dir ./rwgt\n\
+\n'
 
     width_dep_string = '\
 launch --rwgt_name=$postfix\n\
@@ -54,7 +41,6 @@ launch --rwgt_name=$postfix\n\
     for w in widths:
         postfix = ('RelWidth_%g' % (w)).replace('.','p')
         reweight_out_string += width_dep_string.replace('$W', '%g' % (float(mass)*w)).replace('$postfix', postfix)
-
 
     with open(out_name+'_reweight_card.dat', "w") as reweightcard_file:
         reweightcard_file.write(reweight_out_string)
@@ -97,7 +83,7 @@ for m in masses:
         ca = 1./math.sqrt(2)
         customizecards_base_file = open("customizecards_template.dat","r")
         res_customizecards = customizecards_base_file.read().replace('$Weta0','%g' % (w*m)).replace('$Meta0','%g' % m).replace('$KAP111','31.803878252').replace('$KAP112', '%.9f' % (31.803878252))
-        for x in ['SChan_eta0', 'BOX_SChan_eta0_inteference', 'SChan_h_SChan_eta0_inteference']:
+        for x in ['SChan_eta0', 'BOX_SChan_eta0_inteference', 'SChan_h_SChan_eta0_inteference','SChan_eta0_UnDecayed']:
             out_name = ('%s_M_%g_RelWidth_%g' % (x,m,w)).replace('.','p')
 
             # for resonant s-channel we set A12 to pi/2 to give Yukawas equal to SM values
@@ -105,10 +91,11 @@ for m in masses:
             # We set this to pi/4, which effectivly means that the Yukawas for both scalars equal 1/sqrt(2) * the SM value
             # Therefore, the individual templates will be need to be scaled up by a factor of 2 (1./ca**2) for SChan_h_SChan_eta0_inteference and a factor of 2^1.5 (1/ca**3) for BOX_SChan_eta0_inteference to account for this
 
-            res_customizecards_out = res_customizecards.replace('$Weta0','%g' % (w*m)).replace('$A12','%.6f' % (1.570796 if x == 'SChan_eta0' else 0.785398))
+            res_customizecards_out = res_customizecards.replace('$Weta0','%g' % (w*m)).replace('$A12','%.6f' % (1.570796 if (x == 'SChan_eta0' or x == 'SChan_eta0_UnDecayed') else 0.785398))
             os.system('mkdir -p HH_loop_sm_twoscalar_%s' % out_name)
 
             if x == 'SChan_eta0': extra = '/ h iota0 LAM112^2==2'
+            elif x == 'SChan_eta0_UnDecayed': extra = ''
             elif x == 'BOX_SChan_eta0_inteference': extra = '/ h iota0 LAM112^2==1'
             elif x == 'SChan_h_SChan_eta0_inteference' : extra = '/ iota0 LAM111^2==1 LAM112^2==1'
 
@@ -118,5 +105,5 @@ for m in masses:
             WriteExtraModelsCard(card_name)
             WriteRunCard(card_name)
             WriteCustomizeCard(card_name, res_customizecards_out)
-            WriteReweightCard(card_name, extra, m)
+            if x != 'SChan_eta0_UnDecayed': WriteReweightCard(card_name, m)
 
