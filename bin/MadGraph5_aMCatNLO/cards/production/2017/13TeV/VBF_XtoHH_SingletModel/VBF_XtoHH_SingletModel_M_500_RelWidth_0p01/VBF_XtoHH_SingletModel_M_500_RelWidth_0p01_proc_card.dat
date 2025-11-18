@@ -1,0 +1,5 @@
+import model loop_sm_twoscalar
+define p = g u c d s u~ c~ d~ s~ b b~
+define j = g u c d s u~ c~ d~ s~ b b~
+generate p p > eta0 j j $$ w+ w- z eta0 / a j iota0 h QED=3 LAM112=0 LAM111=0 QCD=0, (eta0 > h h)
+output VBF_XtoHH_SingletModel_M_500_RelWidth_0p01 -nojpeg
